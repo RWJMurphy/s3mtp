@@ -1,0 +1,10 @@
+---
+- name: ensure ntp is installed
+  yum: pkg=ntp state=installed
+  tags: ntp
+  sudo: yes
+
+- name: ensure ntpd is running and enabled
+  service: name=ntpd state=running enabled=yes
+  tags: ntp
+  sudo: yes

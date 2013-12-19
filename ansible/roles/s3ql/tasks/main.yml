@@ -1,0 +1,62 @@
+---
+- name: required packages
+  yum: name={{ item }} state=present
+  sudo: yes
+  with_items:
+    - bzip2
+    - fuse
+    - fuse-devel
+    - gcc
+    - libattr-devel
+    - psmisc
+    - python3
+    - python3-pip
+    - python3-devel
+    - python3-apsw
+    - rsync
+    - sqlite
+    - sqlite-devel
+    - tar
+
+- name: required python eggs
+  pip: name={{ item }} executable=pip-python3 state=present
+  sudo: yes
+  with_items:
+    - pycrypto
+    - llfuse
+
+- name: get s3ql source
+  get_url: dest=/usr/src/s3ql.tar.bz2 url=https://s3ql.googlecode.com/files/s3ql-2.6.0.tar.bz2
+  sudo: yes
+
+- name: extract s3ql source
+  shell: tar -xjf s3ql.tar.bz2 chdir=/usr/src creates=s3ql-2.6
+  sudo: yes
+
+- name: make s3ql build dirs writable
+  file: path=/usr/src/s3ql-2.6/build state=directory mode=0777 recurse=yes
+  sudo: yes
+
+- name: compile s3ql
+  command: python3 setup.py build_ext --inplace chdir=/usr/src/s3ql-2.6 creates=src/s3ql/deltadump.cpython-33m.so
+
+- name: install s3ql
+  command: python3 setup.py install chdir=/usr/src/s3ql-2.6 creates=/usr/bin/s3qlctrl
+  sudo: yes
+
+- name: ensure s3ql config directory exists
+  file: path=/root/.s3ql state=directory mode=0700 owner=root group=root
+  sudo: yes
+
+- name: configure s3ql
+  template: src=authinfo2.j2 dest=/root/.s3ql/authinfo2 mode=0600 owner=root group=root
+  sudo: yes
+
+- name: ensure s3ql mountpoint exists
+  file: path=/var/s3mtp state=directory mode=755 owner=root group=root
+  sudo: yes
+
+- name: mount s3ql filesystem
+  shell: echo {{ s3mtp_fs_encryption_pass }} | mount.s3ql --allow-other {{ s3mtp_fs_uri }} /var/s3mtp
+  sudo: yes
+

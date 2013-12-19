@@ -1,0 +1,5 @@
+---
+s3mtp_fs_uri: s3://bucket_name/prefix/
+s3mtp_backend_user:
+s3mtp_backend_pass: 
+s3mtp_fs_encryption_pass:

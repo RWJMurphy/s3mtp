@@ -1,0 +1,7 @@
+---
+- hosts: all
+  roles:
+    - common
+    - s3ql
+  vars_files:
+    - local_vars/s3mtp.yml
