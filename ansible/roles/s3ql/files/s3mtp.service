@@ -1,0 +1,12 @@
+[Unit]
+Description=s3ql filesystem
+After=NetworkManager-wait-online.service
+
+[Service]
+Type=forking
+RemainAfterExit=yes
+ExecStart=/opt/s3mtp/bin/s3mtp_start.sh
+ExecStop=/opt/s3mtp/bin/s3mtp_stop.sh
+
+[Install]
+WantedBy=multi-user.target

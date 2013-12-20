@@ -1,0 +1,4 @@
+---
+- name: restart s3mtp
+  service: name=s3mtp state=restarted
+  sudo: yes

@@ -25,38 +25,63 @@
     - pycrypto
     - llfuse
 
+- name: create /opt/s3mtp
+  file: path=/opt/s3mtp/{{ item }} state=directory owner=root group=root mode=0755
+  sudo: yes
+  with_items:
+    - bin
+    - etc
+    - src
+    - var
+
 - name: get s3ql source
-  get_url: dest=/usr/src/s3ql.tar.bz2 url=https://s3ql.googlecode.com/files/s3ql-2.6.0.tar.bz2
+  get_url: dest=/opt/s3mtp/src/s3ql.tar.bz2 url=https://s3ql.googlecode.com/files/s3ql-2.6.0.tar.bz2
   sudo: yes
 
 - name: extract s3ql source
-  shell: tar -xjf s3ql.tar.bz2 chdir=/usr/src creates=s3ql-2.6
+  shell: tar -xjf s3ql.tar.bz2 chdir=/opt/s3mtp/src creates=s3ql-2.6
   sudo: yes
 
 - name: make s3ql build dirs writable
-  file: path=/usr/src/s3ql-2.6/build state=directory mode=0777 recurse=yes
+  file: path=/opt/s3mtp/src/s3ql-2.6/build state=directory mode=0777 recurse=yes
   sudo: yes
 
 - name: compile s3ql
-  command: python3 setup.py build_ext --inplace chdir=/usr/src/s3ql-2.6 creates=src/s3ql/deltadump.cpython-33m.so
+  command: python3 setup.py build_ext --inplace chdir=/opt/s3mtp/src/s3ql-2.6 creates=src/s3ql/deltadump.cpython-33m.so
 
 - name: install s3ql
-  command: python3 setup.py install chdir=/usr/src/s3ql-2.6 creates=/usr/bin/s3qlctrl
-  sudo: yes
-
-- name: ensure s3ql config directory exists
-  file: path=/root/.s3ql state=directory mode=0700 owner=root group=root
-  sudo: yes
-
-- name: configure s3ql
-  template: src=authinfo2.j2 dest=/root/.s3ql/authinfo2 mode=0600 owner=root group=root
+  command: python3 setup.py install chdir=/opt/s3mtp/src/s3ql-2.6 creates=/usr/bin/s3qlctrl
   sudo: yes
 
 - name: ensure s3ql mountpoint exists
   file: path=/var/s3mtp state=directory mode=755 owner=root group=root
   sudo: yes
 
-- name: mount s3ql filesystem
-  shell: echo {{ s3mtp_fs_encryption_pass }} | mount.s3ql --allow-other {{ s3mtp_fs_uri }} /var/s3mtp
+- name: define s3mtp.authinfo
+  template: src=s3mtp.authinfo.j2 dest=/opt/s3mtp/etc/s3ql/s3mtp.authinfo mode=0600 owner=root group=root
   sudo: yes
+  notify:
+    - restart s3mtp
+
+- name: define s3mtp.service
+  copy: src=s3mtp.service dest=/opt/s3mtp/etc/systemd/s3mtp.service mode=0600
+  sudo: yes
+  notify:
+    - restart s3mtp
+
+- name: link in s3mtp.service
+  file: src=/opt/s3mtp/etc/systemd/s3mtp.service dest=/usr/lib/systemd/system/s3mtp.service state=link
+  sudo: yes
+  notify:
+    - restart s3mtp
+
+- name: define s3mtp bin/*
+  template: src={{ item }}.j2 dest=/opt/s3mtp/bin/{{ item }} mode=0700
+  sudo: yes
+  with_items:
+    - s3mtp_start.sh
+    - s3mtp_stop.sh
+
+- name: ensure s3mtp filesystem mounted
+  service: name=s3mtp state=started enabled=yes
 
