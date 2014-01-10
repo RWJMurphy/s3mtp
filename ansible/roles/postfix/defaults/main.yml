@@ -1,0 +1,3 @@
+---
+postfix_db_user: mail
+postfix_db_name: mail

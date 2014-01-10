@@ -1,0 +1,46 @@
+queue_directory = /var/spool/postfix
+command_directory = /usr/sbin
+daemon_directory = /usr/libexec/postfix
+data_directory = /var/lib/postfix
+mail_owner = postfix
+inet_interfaces = localhost
+inet_protocols = all
+unknown_local_recipient_reject_code = 550
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+debug_peer_level = 2
+debugger_command =
+         PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
+         ddd $daemon_directory/$process_name $process_id & sleep 5
+sendmail_path = /usr/sbin/sendmail.postfix
+newaliases_path = /usr/bin/newaliases.postfix
+mailq_path = /usr/bin/mailq.postfix
+setgid_group = postdrop
+html_directory = no
+manpage_directory = /usr/share/man
+sample_directory = /usr/share/doc/postfix-2.10.2/samples
+readme_directory = /usr/share/doc/postfix-2.10.2/README_FILES
+
+smtpd_tls_cert_file = /etc/pki/dovecot/certs/dovecot.pem
+smtpd_tls_key_file = /etc/pki/dovecot/private/dovecot.pem
+smtpd_use_tls = yes
+smtpd_tls_auth_only = yes
+smtp_tls_security_level = may
+smtp_tls_loglevel = 2
+smtpd_tls_received_header = yes
+
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth
+smtpd_sasl_auth_enable = yes
+smtpd_recipient_restrictions =
+        permit_sasl_authenticated,
+        permit_mynetworks,
+        reject_unauth_destination
+
+mydestination = localhost
+
+virtual_transport = lmtp:unix:private/dovecot-lmtp
+virtual_mailbox_domains = mysql:/etc/postfix/mysql-virtual-mailbox-domains.cf
+virtual_mailbox_maps = mysql:/etc/postfix/mysql-virtual-mailbox-maps.cf
+virtual_alias_maps = mysql:/etc/postfix/mysql-virtual-alias-maps.cf
+local_recipient_maps = $virtual_mailbox_maps

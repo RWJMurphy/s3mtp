@@ -1,0 +1,87 @@
+---
+- name: remove mysql
+  yum: name=mysql* state=absent
+
+- name: ensure mariadb
+  yum: name={{ item }} state=installed
+  with_items:
+    - mariadb
+    - mariadb-server
+  notify:
+    - restart mysql
+
+- name: ensure postfix installed
+  yum: name=postfix state=installed
+  with_items:
+    - postfix
+    - postgrey
+  notify:
+    - restart postfix
+
+- name: ensure python mysql installed
+  yum: name=MySQL-python state=installed
+
+- name: start mysql
+  service: name=mysqld state=running enabled=yes
+
+- name: set mysql root pw
+  mysql_user: name=root
+              host={{ item }}
+              priv=*.*:ALL,GRANT
+              password={{ lookup('password', 'credentials/mysql/root chars=hexdigits') }}
+  with_items:
+    - "{{ ansible_hostname }}"
+    - 127.0.0.1
+    - ::1
+    - localhost
+
+- name: delete anonymous mysql users
+  mysql_user: name=''
+              state=absent
+              host={{ item }}
+              login_user=root
+              login_password={{ lookup('password', 'credentials/mysql/root chars=hexdigits') }}
+  with_items:
+    - "{{ ansible_hostname }}"
+    - 127.0.0.1
+    - ::1
+    - localhost
+
+- name: delete mysql test database
+  mysql_db: name=test
+            state=absent
+            login_user=root
+            login_password={{ lookup('password', 'credentials/mysql/root chars=hexdigits') }}
+
+- name: copy postfix base sql
+  copy: src=postfix.sql dest=/root/postfix.sql
+
+- name: create postfix database
+  mysql_db: name={{ postfix_db_name }}
+            state=present
+            login_user=root
+            login_password={{ lookup('password', 'credentials/mysql/root chars=hexdigits') }}
+  notify:
+    - import postfix sql
+
+- name: create postfix sql user
+  mysql_user: name={{ postfix_db_user }}
+              host=localhost
+              password={{ lookup('password', 'credentials/mysql/' + postfix_db_user + ' chars=hexdigits') }}
+              priv={{ postfix_db_name }}.*:ALL
+              state=present
+              login_user=root
+              login_password={{ lookup('password', 'credentials/mysql/root chars=hexdigits') }}
+
+- name: configure postfix
+  template: dest=/etc/postfix/{{ item }} src={{ item }} mode=0644 owner=root
+  with_items:
+    - main.cf
+    - mysql-virtual-mailbox-domains.cf
+    - mysql-virtual-mailbox-maps.cf
+    - mysql-virtual-alias-maps.cf
+  notify:
+    - restart postfix
+
+- name: start postfix
+  service: name=postfix state=running enabled=yes

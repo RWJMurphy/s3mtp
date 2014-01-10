@@ -1,0 +1,13 @@
+---
+- name: restart postfix
+  service: name=postfix state=restarted
+
+- name: restart mysql
+  service: name=mysqld state=restarted
+
+- name: import postfix sql
+  mysql_db: name={{ postfix_db_name }}
+            state=import
+            target=/root/postfix.sql
+            login_user=root
+            login_password={{ lookup('password', 'credentials/mysql/root chars=hexdigits') }}
