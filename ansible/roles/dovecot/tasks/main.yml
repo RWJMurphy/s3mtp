@@ -1,0 +1,46 @@
+---
+- name: install dovecot
+  yum: name={{ item }} state=present
+  notify: restart dovecot
+  with_items:
+    - dovecot
+    - dovecot-mysql
+
+- name: add user `dovecot' to mail group
+  user: name=dovecot groups=mail append=true
+
+- name: Ensure /var/s3mtp/mail exists
+  file: path=/var/s3mtp/mail
+        state=directory
+        owner=dovecot
+        group=dovecot
+        mode=0700
+
+- name: Config files
+  template: src={{ item }}
+            dest=/etc/dovecot/{{ item }}
+            mode=0600
+            owner=dovecot
+            group=dovecot
+  with_items:
+    - local.conf
+    - dovecot-sql.conf.ext
+    - conf.d/auth-sql.conf.ext
+    - conf.d/10-auth.conf
+    - conf.d/10-mail.conf
+    - conf.d/10-master.conf
+    - conf.d/10-ssl.conf
+    - conf.d/20-lmtp.conf
+  notify:
+    - restart dovecot
+
+- name: generate self-signed certificate
+  command: openssl req -new -x509 -days 1000 -nodes
+           -out "/etc/pki/dovecot/certs/dovecot.pem"
+           -keyout "/etc/pki/dovecot/private/dovecot.pem"
+           creates=/etc/pki/dovecot/certs/dovecot.pem
+  notify:
+    - restart dovecot
+
+- name: ensure dovecot enabled and running
+  service: name=dovecot state=started enabled=yes

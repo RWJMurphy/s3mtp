@@ -4,5 +4,7 @@
   roles:
     - common
     - s3ql
+    - postfix
+    - dovecot
   vars_files:
     - local_vars/s3mtp.yml
