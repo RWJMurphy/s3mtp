@@ -2,7 +2,7 @@
 - name: remove mysql
   yum: name=mysql* state=absent
 
-- name: ensure mariadb
+- name: ensure mariadb installed
   yum: name={{ item }} state=installed
   with_items:
     - mariadb
@@ -10,21 +10,22 @@
   notify:
     - restart mysql
 
-- name: ensure postfix installed
-  yum: name=postfix state=installed
-  with_items:
-    - postfix
-    - postgrey
+- name: configure mariadb
+  template: src=my.cnf.d/00_ansible.cnf
+            dest=/etc/my.cnf.d/00_ansible.cnf
+            owner=root
+            group=root
+            mode=0644
   notify:
-    - restart postfix
-
-- name: ensure python mysql installed
-  yum: name=MySQL-python state=installed
+    - restart mysql
 
 - name: start mysql
   service: name=mysqld state=running enabled=yes
 
-- name: set mysql root pw
+- name: ensure python mysql installed
+  yum: name=MySQL-python state=installed
+
+- name: set mysql root password if unset
   mysql_user: name=root
               host={{ item }}
               priv=*.*:ALL,GRANT
@@ -34,6 +35,7 @@
     - 127.0.0.1
     - ::1
     - localhost
+  ignore_errors: yes
 
 - name: delete anonymous mysql users
   mysql_user: name=''
@@ -72,6 +74,14 @@
               state=present
               login_user=root
               login_password={{ lookup('password', 'credentials/mysql/root chars=hexdigits') }}
+
+- name: ensure postfix installed
+  yum: name=postfix state=installed
+  with_items:
+    - postfix
+    - postgrey
+  notify:
+    - restart postfix
 
 - name: configure postfix
   template: dest=/etc/postfix/{{ item }} src={{ item }} mode=0644 owner=root

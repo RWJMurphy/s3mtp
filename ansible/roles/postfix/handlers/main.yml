@@ -11,3 +11,4 @@
             target=/root/postfix.sql
             login_user=root
             login_password={{ lookup('password', 'credentials/mysql/root chars=hexdigits') }}
+

@@ -1,5 +1,5 @@
 user = {{ postfix_db_user }}
-password = {{ lookup('password', 'roles/postfix/files/credentials/' + postfix_db_user + ' chars=hexdigits') }}
+password = {{ lookup('password', 'roles/postfix/files/credentials/mysql/' + postfix_db_user + ' chars=hexdigits') }}
 hosts = 127.0.0.1
 dbname = {{ postfix_db_name }}
 query = SELECT 1 FROM virtual_users WHERE email='%s'
