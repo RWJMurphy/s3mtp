@@ -44,3 +44,9 @@
 
 - name: ensure dovecot enabled and running
   service: name=dovecot state=started enabled=yes
+
+- name: open firewall ports for dovecot
+  firewalld: service={{ item }} permanent=true state=enabled
+  with_items:
+    - imaps
+    - pop3s

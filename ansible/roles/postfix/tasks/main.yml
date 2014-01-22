@@ -104,3 +104,6 @@
 
 - name: start postfix
   service: name=postfix state=running enabled=yes
+
+- name: open firewall ports for postfix
+  firewalld: service=smtp permanent=true state=enabled
