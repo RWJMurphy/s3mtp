@@ -66,6 +66,15 @@
   notify:
     - import postfix sql
 
+- name: create mail accounts 
+  template: src=mail_accounts.sql
+            dest=/root/mail_accounts.sql
+            owner=root
+            group=root
+            mode=0600
+  notify:
+    - import postfix mail accounts
+
 - name: create postfix sql user
   mysql_user: name={{ postfix_db_user }}
               host=localhost

@@ -1,5 +1,20 @@
 ---
-s3mtp_fs_uri: s3://bucket_name/prefix/
-s3mtp_backend_user:
+s3mtp_fs_uri: s3://
+s3mtp_backend_user: 
 s3mtp_backend_pass: 
-s3mtp_fs_encryption_pass:
+
+s3mtp_hostname: mail01
+s3mtp_domain: example.org
+
+s3mtp_accounts:
+  - user: admin
+    domain: example.org
+    password: $6$
+  - user: user
+    domain: example.org
+    password: $6$
+
+s3mtp_aliases:
+  - domain: example.org
+    from: postmaster
+    to: admin
