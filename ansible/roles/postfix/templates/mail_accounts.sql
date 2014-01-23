@@ -1,8 +1,8 @@
-SET FOREIGN_KEY_CHECKS=0;
-TRUNCATE TABLE virtual_aliases;
-TRUNCATE TABLE virtual_users;
-TRUNCATE TABLE virtual_domains;
-SET FOREIGN_KEY_CHECKS=1;
+START TRANSACTION;
+
+DELETE FROM virtual_aliases;
+DELETE FROM virtual_users;
+DELETE FROM virtual_domains;
 
 {% for domain, accounts in s3mtp_accounts|groupby('domain') %}
     INSERT INTO virtual_domains (name) VALUES ('{{ domain }}');
@@ -26,3 +26,5 @@ INSERT INTO virtual_aliases (domain_id, source, destination) VALUES
 ){% if not loop.last %},{% endif %}
 {% endfor %}
 ;
+
+COMMIT;
