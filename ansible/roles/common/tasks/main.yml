@@ -14,3 +14,10 @@
 
 - name: set hostname
   hostname: name={{ s3mtp_hostname }}.{{ s3mtp_domain }}
+
+- name: install misc packages
+  yum: name={{ item }} state=installed
+  with_items:
+    - htop
+    - tmux
+    - vim-enhanced
