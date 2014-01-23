@@ -5,6 +5,22 @@
   with_items:
     - dovecot
     - dovecot-mysql
+    - dovecot-pigeonhole
+
+- name: install packages required to build dovecot-antispam
+  yum: name={{ item }} state=installed
+  with_items:
+    - automake
+    - dovecot-devel
+    - gcc
+    - mercurial
+    - openssl-devel
+
+- name: download dovecot-antispam
+  hg: repo=http://hg.dovecot.org/dovecot-antispam-plugin
+      dest=/root/dovecot-antispam
+  notify:
+    - build dovecot-antispam
 
 - name: add user `dovecot' to mail group
   user: name=dovecot groups=mail append=true
@@ -15,6 +31,20 @@
         owner=dovecot
         group=dovecot
         mode=0700
+
+- name: create user maildirs
+  file: path=/var/s3mtp/{{ item.domain }}/{{ item.user }}
+        state=directory
+        owner=dovecot
+        group=dovecot
+        mode=0700
+  with_items: s3mtp_accounts
+
+- name: copy base filter for users
+  copy: dest=/var/s3mtp/{{ item.domain }}/{{ item.user }}/.dovecot.sieve
+        src=user.dovecot.sieve
+        force=no
+  with_items: s3mtp_accounts
 
 - name: Config files
   template: src={{ item }}
@@ -30,6 +60,7 @@
     - conf.d/10-mail.conf
     - conf.d/10-master.conf
     - conf.d/10-ssl.conf
+    - conf.d/20-imap.conf
     - conf.d/20-lmtp.conf
   notify:
     - restart dovecot

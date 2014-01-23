@@ -1,0 +1,3 @@
+---
+- name: restart dspam
+  service: name=dspam state=restarted

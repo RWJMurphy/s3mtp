@@ -1,0 +1,23 @@
+---
+- name: ensure dspam installed
+  yum: name=dspam state=installed
+  notify:
+    - restart dspam
+
+- name: configure dspam
+  copy: src=dspam.conf dest=/etc/dspam.conf
+        owner=root
+        group=mail
+        mode=0640
+  notify:
+    - restart dspam
+
+- name: ensure /var/s3mtp/dspam exists
+  file: name=/var/s3mtp/dspam
+        state=directory
+        owner=dspam
+        group=dspam
+        mode=700
+
+- name: ensure dspam running
+  service: name=dspam state=running enabled=yes

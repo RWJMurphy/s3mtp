@@ -1,3 +1,9 @@
 ---
 - name: restart dovecot
   service: name=dovecot state=restarted
+
+- name: build dovecot-antispam
+  shell: ./autogen.sh && ./configure --prefix=/usr --with-dovecot=/usr/lib64/dovecot/ && make && make install
+         chdir=/root/dovecot-antispam
+  notify:
+    - restart dovecot
