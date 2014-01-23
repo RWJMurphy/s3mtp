@@ -1,7 +1,13 @@
 #!/bin/sh
 pass=$(systemd-ask-password 's3ql mount pass: ')
-echo -e "$pass\ncontinue" | fsck.s3ql --authfile=/opt/s3mtp/etc/s3ql/s3mtp.authinfo {{ s3mtp_fs_uri }}
-if [[ $? == 0 ]]
+echo $pass | mount.s3ql --allow-other --authfile=/opt/s3mtp/etc/s3ql/s3mtp.authinfo {{ s3mtp_fs_uri }} /var/s3mtp
+if [[ $? != 0 ]]
 then
-	echo $pass | mount.s3ql --allow-other --authfile=/opt/s3mtp/etc/s3ql/s3mtp.authinfo {{ s3mtp_fs_uri }} /var/s3mtp
+    echo -e "$pass\ncontinue" | fsck.s3ql --authfile=/opt/s3mtp/etc/s3ql/s3mtp.authinfo {{ s3mtp_fs_uri }}
+    if [[ $? == 0 ]]
+    then
+        echo $pass | mount.s3ql --allow-other --authfile=/opt/s3mtp/etc/s3ql/s3mtp.authinfo {{ s3mtp_fs_uri }} /var/s3mtp
+    else
+        return 1
+    fi
 fi
