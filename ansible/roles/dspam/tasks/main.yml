@@ -13,7 +13,7 @@
     - restart dspam
 
 - name: ensure /var/s3mtp/dspam exists
-  file: name=/var/s3mtp/dspam
+  file: path=/var/s3mtp/dspam
         state=directory
         owner=dspam
         group=dspam

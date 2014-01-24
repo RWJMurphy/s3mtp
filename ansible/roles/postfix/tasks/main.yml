@@ -39,6 +39,7 @@
 - name: configure postfix
   template: dest=/etc/postfix/{{ item }} src={{ item }} mode=0644 owner=root
   with_items:
+    - dspam_filter_access
     - master.cf
     - main.cf
     - mysql-virtual-mailbox-domains.cf
