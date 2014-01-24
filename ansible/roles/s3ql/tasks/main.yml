@@ -73,5 +73,5 @@
     - s3mtp_start.sh
     - s3mtp_stop.sh
 
-- name: start s3mtp service - you'll need to ^C, ssh in and start the s3mtp service manually
+- name: start s3mtp service - SSH in and say `sudo systemd-tty-ask-password-agent'
   service: name=s3mtp state=started enabled=yes
