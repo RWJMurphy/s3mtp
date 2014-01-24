@@ -1,0 +1,57 @@
+---
+- name: remove mysql
+  yum: name=mysql* state=absent
+
+- name: ensure mariadb installed
+  yum: name={{ item }} state=installed
+  with_items:
+    - mariadb
+    - mariadb-server
+  notify:
+    - restart mysql
+
+- name: configure mariadb
+  template: src=my.cnf.d/00_ansible.cnf
+            dest=/etc/my.cnf.d/00_ansible.cnf
+            owner=root
+            group=root
+            mode=0644
+  notify:
+    - restart mysql
+
+- name: start mysql
+  service: name=mysqld state=running enabled=yes
+
+- name: ensure python mysql installed
+  yum: name=MySQL-python state=installed
+
+- name: set mysql root password if unset
+  mysql_user: name=root
+              host={{ item }}
+              priv=*.*:ALL,GRANT
+              password={{ lookup('password', 'credentials/root chars=hexdigits') }}
+  with_items:
+    - "{{ ansible_hostname }}"
+    - 127.0.0.1
+    - ::1
+    - localhost
+  ignore_errors: yes
+
+- name: delete anonymous mysql users
+  mysql_user: name=''
+              state=absent
+              host={{ item }}
+              login_user=root
+              login_password={{ lookup('password', 'credentials/root chars=hexdigits') }}
+  with_items:
+    - "{{ ansible_hostname }}"
+    - 127.0.0.1
+    - ::1
+    - localhost
+
+- name: delete mysql test database
+  mysql_db: name=test
+            state=absent
+            login_user=root
+            login_password={{ lookup('password', 'credentials/root chars=hexdigits') }}
+

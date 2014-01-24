@@ -3,6 +3,7 @@
   sudo: yes
   roles:
     - common
+    - mysql
     - s3ql
     - postfix
     - dovecot
