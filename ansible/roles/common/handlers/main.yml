@@ -4,3 +4,6 @@
 
 - name: set selinux permissive
   command: setenforce 0
+
+- name: reload firewall
+  command: firewall-cmd --reload

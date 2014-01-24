@@ -52,3 +52,5 @@
 
 - name: open firewall ports for postfix
   firewalld: service=smtp permanent=true state=enabled
+  notify:
+    - reload firewall

@@ -81,3 +81,5 @@
   with_items:
     - imaps
     - pop3s
+  notify:
+    - reload firewall
