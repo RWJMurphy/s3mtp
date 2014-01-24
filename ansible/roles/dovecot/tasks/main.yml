@@ -33,15 +33,16 @@
         mode=0700
 
 - name: create user maildirs
-  file: path=/var/s3mtp/{{ item.domain }}/{{ item.user }}
+  file: path=/var/s3mtp/mail/{{ item.domain }}/{{ item.user }}
         state=directory
+        recurse=true
         owner=dovecot
         group=dovecot
         mode=0700
   with_items: s3mtp_accounts
 
 - name: copy base filter for users
-  copy: dest=/var/s3mtp/{{ item.domain }}/{{ item.user }}/.dovecot.sieve
+  copy: dest=/var/s3mtp/mail/{{ item.domain }}/{{ item.user }}/.dovecot.sieve
         src=user.dovecot.sieve
         force=no
   with_items: s3mtp_accounts
@@ -62,6 +63,7 @@
     - conf.d/10-ssl.conf
     - conf.d/20-imap.conf
     - conf.d/20-lmtp.conf
+    - conf.d/90-plugin.conf
   notify:
     - restart dovecot
 
