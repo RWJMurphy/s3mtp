@@ -1,4 +1,9 @@
 ---
+- name: set timezone to UTC
+  file: path=/etc/localtime
+        src=/usr/share/zoneinfo/UTC
+        state=link
+
 - name: ensure ntp is installed
   yum: pkg=ntp state=installed
   tags: ntp
@@ -21,3 +26,7 @@
     - htop
     - tmux
     - vim-enhanced
+
+- name: install github.com ssh public key
+  shell: ssh-keyscan github.com >> /etc/ssh/ssh_known_hosts && touch /root/ansible_github_ssh_key_installed
+         creates=/root/ansible_github_ssh_key_installed
