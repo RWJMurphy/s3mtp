@@ -1,0 +1,127 @@
+---
+- name: install nginx, php and packages
+  yum: name={{ item }} state=installed
+  with_items:
+    - nginx
+    - php-fpm
+    - php-pdo
+    - php-mbstring
+    - php-mcrypt
+    - php-mysql
+    - php-intl
+    - php-xml
+  notify:
+    - restart nginx
+    - restart php-fpm
+
+- name: ensure /var/www hierarchy exists
+  file: path=/var/{{ item }}
+        state=directory
+        owner=nginx
+        group=nginx
+        mode=0755
+  with_items:
+    - www
+    - www/default
+
+- name: configure nginx
+  template: src=nginx.conf
+            dest=/etc/nginx/nginx.conf
+            mode=0644
+  notify:
+    - restart nginx
+
+- name: configure php-fpm
+  template: src=php-fpm.www.conf
+            dest=/etc/php-fpm.d/www.conf
+            owner=root
+            group=root
+            mode=0644
+  notify:
+    - restart php-fpm
+
+- name: configure php
+  copy: src={{ item }}
+        dest=/etc/php.d/{{ item }}
+  with_items:
+    - 99_timezone.ini
+  notify:
+    - restart php-fpm
+
+- name: ensure writeable /var/lib/php/session/
+  file: path=/var/lib/php/session/
+        owner=root
+        group=nginx
+        mode=770
+
+- name: install roundcube nginx config
+  template: src=nginx.roundcube.conf
+            dest=/etc/nginx/conf.d/roundcube.conf
+            mode=0644
+  notify:
+    - restart nginx
+
+- name: open firewall ports for nginx
+  firewalld: service={{ item }} permanent=true state=enabled
+  with_items:
+    - http
+    - https
+  notify:
+    - reload firewall
+
+- name: ensure git is installed
+  yum: name=git state=installed
+
+- name: checkout roundcube
+  git: repo=https://github.com/roundcube/roundcubemail.git
+       dest=/opt/roundcube
+       version=v1.0-beta
+
+- name: fetch mime.types from apache
+  get_url: dest=/opt/roundcube/mime.types
+           url=https://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types
+
+- name: make nginx writable temp dirs
+  file: path=/opt/roundcube/{{ item }}
+        state=directory
+        owner=root
+        group=nginx
+        mode=0770
+  with_items:
+    - logs
+    - temp
+
+- name: link roundcube into docroot
+  file: path=/var/www/roundcube
+        src=/opt/roundcube
+        state=link
+
+- name: create roundcube sql user
+  mysql_user: name={{ roundcube_db_user }}
+              host=localhost
+              password={{ lookup('password', '../../mysql/files/credentials/' + roundcube_db_user + ' chars=hexdigits') }}
+              priv={{ roundcube_db_name }}.*:ALL
+              state=present
+              login_user=root
+              login_password={{ lookup('password', '../../mysql/files/credentials/root chars=hexdigits') }}
+
+- name: create roundcube sql database
+  mysql_db: name={{ roundcube_db_name }}
+            state=present
+            login_user=root
+            login_password={{ lookup('password', '../../mysql/files/credentials/root chars=hexdigits') }}
+  notify:
+    - import roundcube sql schema
+
+- name: configure roundcube
+  template: src=roundcube.config.inc.php
+            dest=/opt/roundcube/config/config.inc.php
+            owner=nginx
+            group=nginx
+            mode=0600
+
+- name: ensure services running and enabled
+  service: name={{ item }} state=running enabled=true
+  with_items:
+    - nginx
+    - php-fpm

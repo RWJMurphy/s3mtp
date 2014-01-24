@@ -1,0 +1,13 @@
+---
+- name: restart nginx
+  service: name=nginx state=restarted
+
+- name: restart php-fpm
+  service: name=php-fpm state=restarted
+
+- name: import roundcube sql schema
+  mysql_db: name={{ roundcube_db_name }}
+            login_user=root
+            login_password={{ lookup('password', '../../mysql/files/credentials/root chars=hexdigits') }}
+            state=import
+            target=/opt/roundcube/SQL/mysql.initial.sql
