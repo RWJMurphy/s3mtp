@@ -10,12 +10,14 @@
   notify:
     - import postfix sql
 
-- name: create mail accounts 
+- name: create mail accounts sql
   template: src=mail_accounts.sql
             dest=/root/mail_accounts.sql
             owner=root
             group=root
             mode=0600
+  tags:
+    - accounts
   notify:
     - import postfix mail accounts
 
