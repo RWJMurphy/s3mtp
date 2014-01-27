@@ -63,6 +63,7 @@
     - conf.d/10-ssl.conf
     - conf.d/20-imap.conf
     - conf.d/20-lmtp.conf
+    - conf.d/20-managesieve.conf
     - conf.d/90-plugin.conf
   notify:
     - restart dovecot
@@ -83,5 +84,12 @@
   with_items:
     - imaps
     - pop3s
+  notify:
+    - reload firewall
+
+- name: open firewall ports for dovecot
+  firewalld: port={{ item }} permanent=true state=enabled
+  with_items:
+    - 4190/tcp
   notify:
     - reload firewall

@@ -56,11 +56,11 @@ $config['smtp_port'] = 25;
 
 // SMTP username (if required) if you use %u as the username Roundcube
 // will use the current username for login
-$config['smtp_user'] = '%u';
+$config['smtp_user'] = '';
 
 // SMTP password (if required) if you use %p as the password Roundcube
 // will use the current user's password for login
-$config['smtp_pass'] = '%p';
+$config['smtp_pass'] = '';
 
 // provide an URL where a user can get support for this Roundcube installation
 // PLEASE DO NOT LINK TO THE ROUNDCUBE.NET WEBSITE HERE!
@@ -80,6 +80,8 @@ $config['plugins'] = array(
     'additional_message_headers',
     'archive',
     'attachment_reminder',
+    'jqueryui',
+    'managesieve',
     'zipdownload',
 );
 

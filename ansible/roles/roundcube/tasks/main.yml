@@ -114,11 +114,14 @@
     - import roundcube sql schema
 
 - name: configure roundcube
-  template: src=roundcube.config.inc.php
-            dest=/opt/roundcube/config/config.inc.php
+  template: src={{ item }}
+            dest=/opt/roundcube/{{ item }}
             owner=nginx
             group=nginx
             mode=0600
+  with_items:
+    - config/config.inc.php
+    - plugins/managesieve/config.inc.php
 
 - name: ensure services running and enabled
   service: name={{ item }} state=running enabled=true
