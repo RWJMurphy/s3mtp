@@ -12,14 +12,6 @@
   service: name=ntpd state=running enabled=yes
   tags: ntp
 
-- name: disable selinux
-  selinux: state=disabled
-  notify:
-    - set selinux permissive
-
-- name: set hostname
-  hostname: name={{ s3mtp_hostname }}.{{ s3mtp_domain }}
-
 - name: install misc packages
   yum: name={{ item }} state=installed
   with_items:

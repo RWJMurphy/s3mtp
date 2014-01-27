@@ -1,12 +1,21 @@
 ---
 - hosts: all
+  accelerate: true
   sudo: yes
   roles:
-    - common
-    - mysql
-    - s3ql
-    - postfix
-    - dovecot
-    - roundcube
+    - role: common
+      tags: common
+    - role: mysql
+      tags: mysql
+    - role: s3ql
+      tags: s3ql
+    - role: dspam
+      tags: dspam
+    - role: postfix
+      tags: postfix
+    - role: dovecot
+      tags: dovecot
+    - role: roundcube
+      tags: roundcube
   vars_files:
     - local_vars/s3mtp.yml

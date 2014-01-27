@@ -1,0 +1,40 @@
+---
+- hosts: all
+  sudo: yes
+  tasks:
+    - name: set hostname
+      hostname: name={{ s3mtp_hostname }}.{{ s3mtp_domain }}
+
+    - name: ensure required packages are installed
+      yum: pkg={{ item }} state=installed
+      with_items:
+        - firewalld
+        - python-pip
+
+    - name: ensure required python eggs are installed
+      pip: name={{ item }} state=present
+      with_items:
+        - python-keyczar
+
+    - name: ensure firewalld is running and enabled
+      service: name=firewalld state=running enabled=yes
+
+    - name: open required firewalld ports
+      firewalld: port={{ item }} state=enabled permanent=true
+      with_items:
+        - 20022/tcp
+        - 5099/tcp
+
+    - name: disable selinux
+      selinux: state=disabled
+      notify:
+        - set selinux permissive
+
+  handlers:
+    - name: set selinux permissive
+      command: setenforce 0
+    - name: restart firewalld
+      service: name=firewalld state=reloaded
+
+  vars_files:
+    - local_vars/s3mtp.yml

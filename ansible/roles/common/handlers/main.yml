@@ -2,8 +2,5 @@
 - name: restart ntpd
   service: name=ntpd state=restarted
 
-- name: set selinux permissive
-  command: setenforce 0
-
 - name: reload firewall
   command: firewall-cmd --reload
